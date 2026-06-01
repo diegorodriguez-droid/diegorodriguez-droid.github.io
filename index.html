@@ -1,15 +1,686 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prueba de Conector Atlassian Rovo</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Universidad Nebrija — Grados Universitarios</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:    #1a1f5e;
+      --red:     #c0392b;
+      --red-hover: #a93226;
+      --bg:      #f4f6f9;
+      --white:   #ffffff;
+      --text:    #2c3e50;
+      --muted:   #6b7a8d;
+      --border:  #e0e5ee;
+      --shadow:  0 4px 20px rgba(26,31,94,.10);
+      --shadow-lg: 0 8px 40px rgba(26,31,94,.18);
+      --radius:  12px;
+      --panel-w: 480px;
+
+      --area-com:  #e74c3c;
+      --area-sal:  #27ae60;
+      --area-neg:  #2980b9;
+      --area-edu:  #f39c12;
+      --area-der:  #8e44ad;
+    }
+
+    html { scroll-behavior: smooth; }
+    body  { font-family: 'Inter', sans-serif; color: var(--text); background: var(--bg); }
+
+    /* ── NAV ─────────────────────────────────────────── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--navy);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 6vw; height: 66px;
+      box-shadow: 0 2px 16px rgba(0,0,0,.30);
+    }
+    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .nav-logo-icon {
+      width: 36px; height: 36px; background: var(--red);
+      border-radius: 8px; display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 18px; color: #fff; letter-spacing: -1px;
+    }
+    .nav-logo-text { font-weight: 700; font-size: 1.1rem; color: #fff; letter-spacing: .5px; }
+    .nav-links { display: flex; gap: 28px; list-style: none; }
+    .nav-links a {
+      text-decoration: none; color: rgba(255,255,255,.80);
+      font-size: .88rem; font-weight: 500; transition: color .2s;
+    }
+    .nav-links a:hover { color: #fff; }
+    .btn-nav {
+      background: var(--red); color: #fff; border: none; padding: 9px 20px;
+      border-radius: 7px; font-size: .85rem; font-weight: 600; cursor: pointer;
+      transition: background .2s, transform .15s;
+    }
+    .btn-nav:hover { background: var(--red-hover); transform: translateY(-1px); }
+    @media(max-width:768px) {
+      .nav-links { display: none; }
+      nav { padding: 0 5vw; }
+    }
+
+    /* ── HERO ─────────────────────────────────────────── */
+    .hero {
+      background: linear-gradient(135deg, #0f1440 0%, #1a1f5e 50%, #2c1654 100%);
+      padding: 80px 6vw 70px;
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 70% 50%, rgba(192,57,43,.18) 0%, transparent 60%);
+    }
+    .hero-inner { position: relative; max-width: 700px; }
+    .hero-tag {
+      display: inline-block; background: rgba(192,57,43,.25);
+      color: #ff8a80; font-size: .78rem; font-weight: 600; letter-spacing: 1.5px;
+      text-transform: uppercase; padding: 5px 14px; border-radius: 20px;
+      border: 1px solid rgba(192,57,43,.40); margin-bottom: 20px;
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 4vw, 3.2rem); font-weight: 800;
+      color: #fff; line-height: 1.15; margin-bottom: 18px;
+    }
+    .hero h1 span { color: #ff6b6b; }
+    .hero p {
+      color: rgba(255,255,255,.75); font-size: 1.05rem; line-height: 1.7;
+      max-width: 560px; margin-bottom: 32px;
+    }
+    .hero-stats { display: flex; gap: 36px; flex-wrap: wrap; }
+    .stat { display: flex; flex-direction: column; }
+    .stat-n { font-size: 1.9rem; font-weight: 800; color: #fff; line-height: 1; }
+    .stat-l { font-size: .80rem; color: rgba(255,255,255,.60); margin-top: 3px; }
+
+    /* ── FILTROS ──────────────────────────────────────── */
+    .filters-wrap {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      padding: 0 6vw;
+      position: sticky; top: 66px; z-index: 90;
+      box-shadow: 0 2px 8px rgba(26,31,94,.06);
+    }
+    .filters {
+      display: flex; gap: 6px; overflow-x: auto;
+      padding: 14px 0; scrollbar-width: none;
+    }
+    .filters::-webkit-scrollbar { display: none; }
+    .filter-btn {
+      white-space: nowrap; padding: 8px 18px; border-radius: 25px;
+      border: 1.5px solid var(--border); background: transparent;
+      font-size: .84rem; font-weight: 500; color: var(--muted);
+      cursor: pointer; transition: all .2s; flex-shrink: 0;
+    }
+    .filter-btn:hover { border-color: var(--navy); color: var(--navy); }
+    .filter-btn.active {
+      background: var(--navy); color: #fff; border-color: var(--navy);
+    }
+
+    /* ── GRID ─────────────────────────────────────────── */
+    .catalog-header {
+      padding: 36px 6vw 10px;
+      display: flex; align-items: baseline; gap: 12px;
+    }
+    .catalog-header h2 { font-size: 1.35rem; font-weight: 700; color: var(--navy); }
+    .catalog-count {
+      font-size: .88rem; color: var(--muted); font-weight: 400;
+    }
+
+    .grid-wrap { padding: 16px 6vw 60px; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 22px;
+    }
+
+    /* ── CARD ─────────────────────────────────────────── */
+    .card {
+      background: var(--white); border-radius: var(--radius);
+      border: 1px solid var(--border); cursor: pointer;
+      transition: transform .22s, box-shadow .22s;
+      display: flex; flex-direction: column;
+      overflow: hidden; position: relative;
+    }
+    .card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); }
+    .card-top { height: 6px; }
+    .card-body { padding: 22px 22px 18px; flex: 1; display: flex; flex-direction: column; gap: 10px; }
+
+    .card-area {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: .73rem; font-weight: 600; letter-spacing: .6px;
+      text-transform: uppercase; padding: 4px 10px; border-radius: 12px;
+      width: fit-content;
+    }
+    .card-area-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+    .card-icon {
+      width: 46px; height: 46px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; margin-bottom: 2px;
+    }
+    .card h3 { font-size: 1rem; font-weight: 700; color: var(--navy); line-height: 1.3; }
+    .card p  { font-size: .84rem; color: var(--muted); line-height: 1.55; flex: 1; }
+    .card-meta {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 8px; padding-top: 14px; border-top: 1px solid var(--border);
+    }
+    .card-duration { font-size: .78rem; color: var(--muted); font-weight: 500; }
+    .card-arrow {
+      width: 30px; height: 30px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; transition: background .2s, transform .2s;
+    }
+    .card:hover .card-arrow { transform: translateX(3px); }
+
+    /* ── OVERLAY ──────────────────────────────────────── */
+    .overlay {
+      position: fixed; inset: 0; background: rgba(10,14,40,.55);
+      z-index: 200; opacity: 0; pointer-events: none;
+      transition: opacity .3s;
+      backdrop-filter: blur(2px);
+    }
+    .overlay.open { opacity: 1; pointer-events: all; }
+
+    /* ── PANEL ────────────────────────────────────────── */
+    .panel {
+      position: fixed; top: 0; right: 0; bottom: 0;
+      width: min(var(--panel-w), 100vw);
+      background: var(--white); z-index: 300;
+      transform: translateX(100%);
+      transition: transform .35s cubic-bezier(.4,0,.2,1);
+      display: flex; flex-direction: column;
+      box-shadow: -8px 0 40px rgba(10,14,40,.20);
+    }
+    .panel.open { transform: translateX(0); }
+
+    .panel-header {
+      padding: 0 28px;
+      height: 64px; display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--border); flex-shrink: 0;
+    }
+    .panel-back {
+      display: flex; align-items: center; gap: 8px;
+      font-size: .85rem; color: var(--muted); font-weight: 500;
+    }
+    .btn-close {
+      width: 36px; height: 36px; border-radius: 8px;
+      border: 1px solid var(--border); background: transparent;
+      font-size: 20px; cursor: pointer; color: var(--muted);
+      display: flex; align-items: center; justify-content: center;
+      transition: background .2s, color .2s;
+    }
+    .btn-close:hover { background: var(--bg); color: var(--text); }
+
+    .panel-stripe { height: 8px; flex-shrink: 0; }
+
+    .panel-body { padding: 28px; overflow-y: auto; flex: 1; }
+
+    .panel-area-badge {
+      display: inline-flex; align-items: center; gap: 7px;
+      font-size: .78rem; font-weight: 600; letter-spacing: .8px;
+      text-transform: uppercase; padding: 5px 12px; border-radius: 14px;
+      margin-bottom: 16px;
+    }
+    .panel-icon-big {
+      width: 64px; height: 64px; border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 32px; margin-bottom: 16px;
+    }
+    .panel-title {
+      font-size: 1.55rem; font-weight: 800; color: var(--navy); line-height: 1.2;
+      margin-bottom: 6px;
+    }
+    .panel-faculty { font-size: .88rem; color: var(--muted); margin-bottom: 24px; }
+
+    .info-pills { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 28px; }
+    .pill {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 8px 14px;
+      font-size: .82rem; font-weight: 500; color: var(--text);
+    }
+    .pill-icon { font-size: 15px; }
+
+    .section-label {
+      font-size: .72rem; font-weight: 700; letter-spacing: 1.2px;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 10px;
+    }
+    .panel-desc { font-size: .92rem; color: #4a5568; line-height: 1.75; margin-bottom: 28px; }
+
+    .salidas-list { list-style: none; display: flex; flex-direction: column; gap: 8px; margin-bottom: 32px; }
+    .salidas-list li {
+      display: flex; align-items: flex-start; gap: 10px;
+      font-size: .88rem; color: var(--text); line-height: 1.4;
+    }
+    .salidas-list li::before {
+      content: '→'; color: var(--red); font-weight: 700; flex-shrink: 0; margin-top: 1px;
+    }
+
+    .panel-actions { display: flex; flex-direction: column; gap: 10px; }
+    .btn-primary {
+      background: var(--navy); color: #fff; border: none;
+      padding: 14px; border-radius: 9px; font-size: .92rem; font-weight: 600;
+      cursor: pointer; text-align: center; transition: background .2s, transform .15s;
+    }
+    .btn-primary:hover { background: #0f1440; transform: translateY(-1px); }
+    .btn-outline {
+      background: transparent; color: var(--navy);
+      border: 1.5px solid var(--navy); padding: 13px; border-radius: 9px;
+      font-size: .92rem; font-weight: 600; cursor: pointer; text-align: center;
+      transition: background .2s;
+    }
+    .btn-outline:hover { background: rgba(26,31,94,.06); }
+
+    /* ── FOOTER ───────────────────────────────────────── */
+    footer {
+      background: var(--navy); color: rgba(255,255,255,.60);
+      text-align: center; padding: 28px 6vw;
+      font-size: .82rem; line-height: 1.8;
+    }
+    footer strong { color: #fff; }
+
+    /* ── EMPTY STATE ──────────────────────────────────── */
+    .empty {
+      grid-column: 1/-1; text-align: center; padding: 60px 20px;
+      color: var(--muted);
+    }
+    .empty span { font-size: 3rem; display: block; margin-bottom: 12px; }
+  </style>
 </head>
 <body>
 
-    <h1>¡Hola, Mundo!</h1>
-    <p>Esta es una página web pública de prueba configurada para validar el conector de páginas web personalizadas (Custom Webpages) de Atlassian Rovo.</p>
-    <p>Si estás leyendo esto en los resultados de búsqueda de tu agente de Rovo, ¡significa que el rastreador y el archivo robots.txt han funcionado perfectamente!</p>
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#">
+    <div class="nav-logo-icon">N</div>
+    <span class="nav-logo-text">Universidad Nebrija</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#">Nosotros</a></li>
+    <li><a href="#">Estudios</a></li>
+    <li><a href="#">Internacional</a></li>
+    <li><a href="#">Empleabilidad</a></li>
+    <li><a href="#">Contacto</a></li>
+  </ul>
+  <button class="btn-nav">Solicitar admisión</button>
+</nav>
 
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <span class="hero-tag">Carreras universitarias</span>
+    <h1>Descubre nuestros <span>Grados Universitarios</span></h1>
+    <p>Formación práctica, internacional y orientada a la empleabilidad. Elige entre más de 25 grados y prepárate para los retos del mundo profesional.</p>
+    <div class="hero-stats">
+      <div class="stat"><span class="stat-n">+25</span><span class="stat-l">Grados oficiales</span></div>
+      <div class="stat"><span class="stat-n">95%</span><span class="stat-l">Empleabilidad</span></div>
+      <div class="stat"><span class="stat-n">+300</span><span class="stat-l">Universidades aliadas</span></div>
+      <div class="stat"><span class="stat-n">5</span><span class="stat-l">Ramas de conocimiento</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- FILTROS -->
+<div class="filters-wrap">
+  <div class="filters" id="filters">
+    <button class="filter-btn active" data-area="all">Todas las áreas</button>
+    <button class="filter-btn" data-area="com">Comunicación y Artes</button>
+    <button class="filter-btn" data-area="sal">Ciencias de la Salud</button>
+    <button class="filter-btn" data-area="neg">Negocios y Tecnología</button>
+    <button class="filter-btn" data-area="edu">Educación y Lenguas</button>
+    <button class="filter-btn" data-area="der">Derecho y CC. Sociales</button>
+  </div>
+</div>
+
+<!-- CATÁLOGO -->
+<div class="catalog-header">
+  <h2>Grados disponibles</h2>
+  <span class="catalog-count" id="countLabel"></span>
+</div>
+<div class="grid-wrap">
+  <div class="grid" id="grid"></div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <strong>Universidad Nebrija</strong><br>
+  C/ Pirineos, 55 · 28040 Madrid · España<br>
+  © 2026 Universidad Nebrija. Todos los derechos reservados.
+</footer>
+
+<!-- OVERLAY -->
+<div class="overlay" id="overlay"></div>
+
+<!-- PANEL LATERAL -->
+<div class="panel" id="panel">
+  <div class="panel-header">
+    <div class="panel-back">← Catálogo de grados</div>
+    <button class="btn-close" id="btnClose">✕</button>
+  </div>
+  <div class="panel-stripe" id="panelStripe"></div>
+  <div class="panel-body" id="panelBody"></div>
+</div>
+
+<script>
+  /* ── DATOS ─────────────────────────────────────────── */
+  const AREAS = {
+    com: { label: 'Comunicación y Artes',   color: '#e74c3c', bg: 'rgba(231,76,60,.10)',  icon: '🎨', faculty: 'Facultad de Comunicación y Artes' },
+    sal: { label: 'Ciencias de la Salud',   color: '#27ae60', bg: 'rgba(39,174,96,.10)',  icon: '🩺', faculty: 'Facultad de Ciencias de la Salud' },
+    neg: { label: 'Negocios y Tecnología',  color: '#2980b9', bg: 'rgba(41,128,185,.10)', icon: '💼', faculty: 'Nebrija Business & Technology School' },
+    edu: { label: 'Educación y Lenguas',    color: '#f39c12', bg: 'rgba(243,156,18,.10)', icon: '📚', faculty: 'Facultad de Lenguas y Educación' },
+    der: { label: 'Derecho y CC. Sociales', color: '#8e44ad', bg: 'rgba(142,68,173,.10)', icon: '⚖️', faculty: 'Facultad de Derecho y Ciencias Sociales' },
+  };
+
+  const GRADOS = [
+    /* COMUNICACIÓN Y ARTES */
+    {
+      id: 1, area: 'com', icon: '📰',
+      nombre: 'Grado en Periodismo',
+      corto: 'Forma periodistas capaces de informar en entornos digitales y multiplataforma.',
+      descripcion: 'El Grado en Periodismo de la Universidad Nebrija forma profesionales capaces de informar, analizar y comunicar en cualquier soporte y formato. El plan de estudios integra la teoría periodística clásica con las herramientas digitales más actuales: periodismo de datos, verificación de hechos, redes sociales y narrativa multimedia.\n\nLos estudiantes realizan prácticas desde el primer año en medios de comunicación reales y trabajan en el Laboratorio de Periodismo, dotado de plató de televisión, cabinas de radio y redacción digital. La dimensión internacional del grado permite cursar semestres en universidades de Europa y América.',
+      salidas: ['Redactor/a en medios digitales y tradicionales', 'Periodista multimedia y de datos', 'Community manager y gestor de contenidos', 'Corresponsal internacional', 'Jefe/a de prensa y comunicación corporativa'],
+      duracion: '4 años', modalidad: 'Presencial', creditos: '240 ECTS',
+    },
+    {
+      id: 2, area: 'com', icon: '🎬',
+      nombre: 'Grado en Comunicación Audiovisual',
+      corto: 'Producción, dirección y realización de contenidos para cine, televisión y plataformas digitales.',
+      descripcion: 'El Grado en Comunicación Audiovisual forma a los creadores de imagen y sonido que necesitan las industrias del cine, la televisión, el entretenimiento y la publicidad. Los estudiantes aprenden a dominar cada fase del proceso creativo: desde el guión hasta la postproducción, pasando por la dirección de fotografía y el diseño de sonido.\n\nNebrija dispone de instalaciones propias de primer nivel: plató de televisión HD, salas de edición y postproducción, estudio de grabación de audio y laboratorio de efectos visuales (VFX). El grado culmina con un Trabajo de Fin de Grado que consiste en la producción de una pieza audiovisual completa.',
+      salidas: ['Director/a y realizador/a audiovisual', 'Editor/a de vídeo y postproducción', 'Diseñador/a de producción y arte', 'Guionista de cine y televisión', 'Productor/a ejecutivo/a de contenidos'],
+      duracion: '4 años', modalidad: 'Presencial', creditos: '240 ECTS',
+    },
+    {
+      id: 3, area: 'com', icon: '📣',
+      nombre: 'Grado en Publicidad y Relaciones Públicas',
+      corto: 'Estrategia de marca, creatividad publicitaria y gestión de la reputación corporativa.',
+      descripcion: 'Este grado combina la creatividad publicitaria con la estrategia de comunicación y la gestión de la reputación. Los estudiantes aprenden a diseñar campañas integrales, gestionar marcas en entornos digitales y construir relaciones efectivas con todos los públicos de interés de una organización.\n\nEl enfoque práctico incluye la participación en concursos publicitarios reales, proyectos para empresas clientes y un laboratorio creativo con las últimas herramientas de diseño y planificación de medios. La estrecha relación de Nebrija con el sector garantiza mentores de agencias líderes.',
+      salidas: ['Director/a creativo/a en agencia de publicidad', 'Especialista en branding y comunicación de marca', 'Responsable de relaciones públicas y comunicación corporativa', 'Consultor/a de marketing digital', 'Planificador/a de medios y SEO/SEM'],
+      duracion: '4 años', modalidad: 'Presencial', creditos: '240 ECTS',
+    },
+    {
+      id: 4, area: 'com', icon: '✏️',
+      nombre: 'Grado en Diseño y Tecnologías Creativas',
+      corto: 'Diseño gráfico, UX/UI y comunicación visual en entornos digitales e impresos.',
+      descripcion: 'El Grado en Diseño y Tecnologías Creativas es una titulación única que une el pensamiento creativo con las habilidades técnicas más demandadas: diseño gráfico, diseño de interfaces (UX/UI), motion graphics, diseño editorial y branding. Los estudiantes trabajan desde el primer año en proyectos reales para empresas e instituciones.\n\nLas materias del plan de estudios incluyen identidad visual, tipografía, fotografía, diseño de producto, realidad aumentada y fabricación digital. El grado se imparte en talleres completamente equipados con las últimas versiones de Adobe Creative Suite, Figma y herramientas de prototipado.',
+      salidas: ['Diseñador/a gráfico/a y visual', 'Especialista en UX/UI y experiencia de usuario', 'Motion designer y animador/a 2D/3D', 'Director/a de arte en agencias creativas', 'Diseñador/a de producto digital'],
+      duracion: '4 años', modalidad: 'Presencial', creditos: '240 ECTS',
+    },
+    {
+      id: 5, area: 'com', icon: '🎞️',
+      nombre: 'Grado en Animación',
+      corto: 'Animación 2D, 3D, stop-motion y efectos visuales para cine, videojuegos y publicidad.',
+      descripcion: 'El Grado en Animación forma artistas completos capaces de crear mundos, personajes y narrativas visuales para cualquier soporte. El currículo abarca desde el dibujo y los fundamentos del movimiento hasta las técnicas más avanzadas de animación 3D, simulación de físicas y VFX con software de nivel industrial.\n\nLos estudiantes trabajan en proyectos de cortometrajes, videojuegos y piezas publicitarias en grupos interdisciplinares. Las instalaciones incluyen laboratorios de render farm, estudios de captura de movimiento (motion capture) y salas de ilustración digital equipadas con tabletas Wacom.',
+      salidas: ['Animador/a 2D y 3D para cine y televisión', 'Artista de efectos visuales (VFX)', 'Diseñador/a de personajes y escenarios', 'Artista de videojuegos (concept art, rigging)', 'Director/a de animación en estudios audiovisuales'],
+      duracion: '4 años', modalidad: 'Presencial', creditos: '240 ECTS',
+    },
+
+    /* CIENCIAS DE LA SALUD */
+    {
+      id: 6, area: 'sal', icon: '🩻',
+      nombre: 'Grado en Medicina',
+      corto: 'Formación médica integral con prácticas clínicas desde el segundo año.',
+      descripcion: 'El Grado en Medicina de Nebrija forma médicos con una sólida base científica y clínica, dotados de las competencias necesarias para ejercer la medicina con excelencia, ética y compromiso con el paciente. El plan de estudios integra las ciencias básicas, la clínica y la investigación en un itinerario longitudinal de seis años.\n\nLos estudiantes realizan rotaciones clínicas en los hospitales universitarios asociados a Nebrija desde el segundo curso. La formación incorpora simulación clínica de alta fidelidad, anatomía en laboratorios con tecnología de última generación y tutorías personalizadas con médicos especialistas.',
+      salidas: ['Médico/a especialista (vía MIR)', 'Médico/a de familia y atención primaria', 'Investigador/a biomédico/a', 'Médico/a en organismos internacionales (OMS, MSF)', 'Gestor/a sanitario/a y salud pública'],
+      duracion: '6 años', modalidad: 'Presencial', creditos: '360 ECTS',
+    },
+    {
+      id: 7, area: 'sal', icon: '💊',
+      nombre: 'Grado en Enfermería',
+      corto: 'Cuidado integral del paciente, gestión clínica y atención comunitaria.',
+      descripcion: 'El Grado en Enfermería de Nebrija prepara a los futuros profesionales de la enfermería para proporcionar cuidados de calidad a personas, familias y comunidades. La formación combina sólidos conocimientos biosanitarios con competencias clínicas, relacionales y de gestión.\n\nLas prácticas clínicas, que representan el 50% del plan de estudios, se realizan en hospitales públicos y privados, centros de salud, residencias y comunidades. El laboratorio de simulación enfermera cuenta con maniquíes de alta fidelidad, material clínico real y escenarios que replican unidades de cuidados intensivos, urgencias y quirófanos.',
+      salidas: ['Enfermero/a en hospitales y clínicas', 'Enfermero/a de atención primaria y comunitaria', 'Enfermero/a especialista (EIR)', 'Gestor/a de unidades de enfermería', 'Enfermero/a en organismos internacionales'],
+      duracion: '4 años', modalidad: 'Presencial', creditos: '240 ECTS',
+    },
+    {
+      id: 8, area: 'sal', icon: '🦴',
+      nombre: 'Grado en Fisioterapia',
+      corto: 'Rehabilitación, prevención del daño y recuperación funcional del paciente.',
+      descripcion: 'El Grado en Fisioterapia forma profesionales especializados en la prevención, diagnóstico funcional, tratamiento y recuperación de alteraciones del sistema musculoesquelético, neurológico y cardiorrespiratorio. La fisioterapia es una de las profesiones sanitarias con mayor crecimiento en España y Europa.\n\nLas instalaciones de la clínica universitaria de Fisioterapia de Nebrija permiten a los estudiantes atender pacientes reales desde el tercer curso, bajo la supervisión de fisioterapeutas colegiados. El plan de estudios incluye fisioterapia deportiva, neurológica, pediátrica y técnicas manuales avanzadas.',
+      salidas: ['Fisioterapeuta en clínicas privadas y hospitales', 'Fisioterapeuta deportivo/a en equipos profesionales', 'Fisioterapeuta neurológico/a y pediátrico/a', 'Investigador/a en rehabilitación y salud', 'Director/a de clínica de fisioterapia'],
+      duracion: '4 años', modalidad: 'Presencial', creditos: '240 ECTS',
+    },
+    {
+      id: 9, area: 'sal', icon: '🧠',
+      nombre: 'Grado en Psicología',
+      corto: 'Estudio de la conducta humana con orientación clínica, educativa y organizacional.',
+      descripcion: 'El Grado en Psicología de Nebrija ofrece una formación científica rigurosa sobre los procesos psicológicos, el comportamiento humano y los factores que influyen en la salud mental. El plan de estudios integra psicología clínica, organizacional, educativa y social, preparando a profesionales versátiles.\n\nLos laboratorios de investigación psicológica permiten a los estudiantes diseñar y participar en estudios experimentales con equipamiento de biofeedback, eye-tracking y neurofeedback. Las prácticas externas se realizan en hospitales, colegios, empresas y centros de salud mental.',
+      salidas: ['Psicólogo/a clínico/a (vía PIR)', 'Psicólogo/a organizacional y de RRHH', 'Psicólogo/a educativo/a y orientador/a', 'Investigador/a en neurociencia y comportamiento', 'Psicólogo/a forense y criminológico/a'],
+      duracion: '4 años', modalidad: 'Presencial', creditos: '240 ECTS',
+    },
+    {
+      id: 10, area: 'sal', icon: '🥗',
+      nombre: 'Grado en Nutrición y Dietética',
+      corto: 'Alimentación, dietoterapia y promoción de la salud en entornos clínicos y comunitarios.',
+      descripcion: 'El Grado en Nutrición y Dietética forma a los futuros expertos en alimentación humana, dietoterapia y promoción de la salud. Los estudiantes adquieren competencias en evaluación nutricional, elaboración de planes dietéticos, seguridad alimentaria, nutrición deportiva y comunicación en salud.\n\nEl grado dispone de laboratorios de análisis de alimentos, cocina didáctica y clínica universitaria donde los alumnos atienden a pacientes con distintas patologías relacionadas con la nutrición. La formación incluye prácticas en hospitales, centros deportivos, empresas alimentarias y servicios de restauración colectiva.',
+      salidas: ['Dietista-nutricionista clínico/a', 'Asesor/a nutricional en centros deportivos', 'Investigador/a en ciencias de la alimentación', 'Especialista en nutrición comunitaria y salud pública', 'Tecnólogo/a alimentario/a en empresas del sector'],
+      duracion: '4 años', modalidad: 'Presencial', creditos: '240 ECTS',
+    },
+
+    /* NEGOCIOS Y TECNOLOGÍA */
+    {
+      id: 11, area: 'neg', icon: '📊',
+      nombre: 'Grado en ADE',
+      corto: 'Gestión empresarial, estrategia, finanzas y liderazgo organizacional.',
+      descripcion: 'El Grado en Administración y Dirección de Empresas (ADE) de Nebrija forma líderes empresariales con una visión integral del mundo de los negocios. El plan de estudios combina finanzas, marketing, operaciones, recursos humanos y estrategia con un enfoque práctico y global.\n\nA través del Business Lab, los estudiantes trabajan en proyectos reales para empresas, simulaciones de gestión empresarial y programas de emprendimiento. La Nebrija Business School mantiene acuerdos con más de 400 empresas que ofrecen prácticas y empleo a los egresados.',
+      salidas: ['Directivo/a y gestor/a de empresas', 'Consultor/a estratégico/a y de negocio', 'Emprendedor/a y creador/a de startups', 'Analista financiero/a y de inversión', 'Responsable de operaciones y supply chain'],
+      duracion: '4 años', modalidad: 'Presencial / Semipresencial', creditos: '240 ECTS',
+    },
+    {
+      id: 12, area: 'neg', icon: '📱',
+      nombre: 'Grado en Marketing',
+      corto: 'Marketing digital, investigación de mercados, comportamiento del consumidor y branding.',
+      descripcion: 'El Grado en Marketing de Nebrija forma especialistas capaces de diseñar, ejecutar y medir estrategias de marketing en un entorno omnicanal. Los estudiantes aprenden a combinar el análisis de datos con la creatividad para conectar marcas y consumidores de forma relevante y rentable.\n\nEl plan de estudios incluye marketing digital avanzado, publicidad programática, SEO/SEM, analítica web, marketing de contenidos y e-commerce. Las prácticas en empresas líderes del sector y los proyectos con clientes reales garantizan una inserción laboral temprana.',
+      salidas: ['Responsable de marketing digital y redes sociales', 'Especialista en SEO/SEM y analítica web', 'Brand manager y gestor/a de marca', 'Director/a de e-commerce', 'Investigador/a de mercados y consumer insights'],
+      duracion: '4 años', modalidad: 'Presencial', creditos: '240 ECTS',
+    },
+    {
+      id: 13, area: 'neg', icon: '💰',
+      nombre: 'Grado en Finanzas y Contabilidad',
+      corto: 'Gestión financiera, análisis de inversiones, contabilidad y mercados de capitales.',
+      descripcion: 'El Grado en Finanzas y Contabilidad prepara a los estudiantes para gestionar los recursos financieros de empresas e instituciones, analizar mercados de capitales y tomar decisiones de inversión fundamentadas en datos. El plan de estudios cubre contabilidad financiera y de gestión, finanzas corporativas, mercados financieros y fiscalidad.\n\nLos estudiantes acceden a una sala de mercados equipada con terminales Bloomberg, lo que les permite operar y analizar en tiempo real los mercados financieros globales. El grado ofrece preparación específica para los exámenes CFA y otras certificaciones financieras internacionales.',
+      salidas: ['Analista financiero/a y de riesgo', 'Auditor/a en Big Four y firmas especializadas', 'Gestor/a de fondos y carteras de inversión', 'Controller financiero/a en empresas multinacionales', 'Asesor/a fiscal y tributario/a'],
+      duracion: '4 años', modalidad: 'Presencial', creditos: '240 ECTS',
+    },
+    {
+      id: 14, area: 'neg', icon: '💻',
+      nombre: 'Grado en Ingeniería Informática',
+      corto: 'Desarrollo de software, sistemas, redes, ciberseguridad y arquitectura de aplicaciones.',
+      descripcion: 'El Grado en Ingeniería Informática de Nebrija forma ingenieros capaces de diseñar, desarrollar y mantener sistemas informáticos complejos. El plan de estudios abarca programación, estructuras de datos, bases de datos, redes, sistemas operativos, ingeniería del software y computación en la nube.\n\nLos estudiantes trabajan en laboratorios con equipamiento de última generación y participan en proyectos de desarrollo reales desde el primer año. La estrecha vinculación con el ecosistema tecnológico de Madrid permite a los alumnos realizar prácticas en startups tecnológicas, consultoras digitales y grandes corporaciones.',
+      salidas: ['Desarrollador/a de software full-stack', 'Ingeniero/a de sistemas y DevOps', 'Especialista en ciberseguridad', 'Arquitecto/a de soluciones cloud', 'Analista y gestor/a de bases de datos'],
+      duracion: '4 años', modalidad: 'Presencial', creditos: '240 ECTS',
+    },
+    {
+      id: 15, area: 'neg', icon: '🤖',
+      nombre: 'Grado en Inteligencia Artificial y Big Data',
+      corto: 'Machine learning, deep learning, análisis de datos masivos y ética de la IA.',
+      descripcion: 'El Grado en Inteligencia Artificial y Big Data es una de las titulaciones más innovadoras y con mayor proyección del mercado actual. Forma a los ingenieros del dato capaces de extraer valor de grandes volúmenes de información y construir sistemas inteligentes que aprenden y toman decisiones.\n\nEl plan de estudios incluye machine learning, redes neuronales profundas, procesamiento de lenguaje natural (NLP), visión artificial, estadística avanzada y ética de la IA. Los estudiantes trabajan con herramientas como Python, TensorFlow, PyTorch, Spark y AWS/Azure en proyectos con impacto real en sectores como salud, finanzas y retail.',
+      salidas: ['Científico/a de datos (Data Scientist)', 'Ingeniero/a de Machine Learning', 'Analista de Big Data y Business Intelligence', 'Investigador/a en IA y computación cognitiva', 'Consultor/a de transformación digital'],
+      duracion: '4 años', modalidad: 'Presencial', creditos: '240 ECTS',
+    },
+    {
+      id: 16, area: 'neg', icon: '📡',
+      nombre: 'Grado en Ingeniería de Telecomunicaciones',
+      corto: 'Redes de comunicación, 5G, IoT, sistemas electrónicos y radiocomunicaciones.',
+      descripcion: 'El Grado en Ingeniería de Telecomunicaciones forma a los ingenieros que diseñan y gestionan las infraestructuras de comunicación del futuro. El plan de estudios cubre telecomunicaciones, electrónica, señales y sistemas, redes de datos, 5G, IoT, fotónica y procesamiento de señal.\n\nLos laboratorios de telecomunicaciones de Nebrija cuentan con equipamiento de medición de alta precisión, osciloscopios, analizadores de espectro y bancos de prueba para sistemas de comunicación inalámbrica. Los convenios con operadoras y fabricantes tecnológicos ofrecen prácticas únicas en el sector.',
+      salidas: ['Ingeniero/a de redes y telecomunicaciones', 'Especialista en 5G y comunicaciones móviles', 'Ingeniero/a de sistemas embebidos e IoT', 'Investigador/a en radiofrecuencia y antenas', 'Consultor/a tecnológico/a en proyectos de infraestructura'],
+      duracion: '4 años', modalidad: 'Presencial', creditos: '240 ECTS',
+    },
+
+    /* EDUCACIÓN Y LENGUAS */
+    {
+      id: 17, area: 'edu', icon: '🧒',
+      nombre: 'Grado en Educación Infantil',
+      corto: 'Formación docente para la etapa 0-6 años con enfoque en desarrollo integral del niño.',
+      descripcion: 'El Grado en Educación Infantil forma maestros y maestras especialistas en la etapa educativa que abarca de los 0 a los 6 años, la más determinante en el desarrollo cognitivo, emocional y social del ser humano. El plan de estudios combina psicología evolutiva, didáctica, lengua y literatura infantil, expresión artística y musical, y prácticum extenso en centros educativos.\n\nNebrija ofrece un enfoque innovador que incorpora pedagogías activas, aprendizaje por proyectos y el uso de la tecnología en el aula. Los estudiantes realizan prácticas en escuelas infantiles y colegios concertados y privados desde el primer año de carrera.',
+      salidas: ['Maestro/a de Educación Infantil en escuelas y colegios', 'Coordinador/a pedagógico/a de escuela infantil', 'Orientador/a y educador/a en centros de desarrollo', 'Técnico/a de programas de atención temprana', 'Diseñador/a de materiales educativos para la infancia'],
+      duracion: '4 años', modalidad: 'Presencial', creditos: '240 ECTS',
+    },
+    {
+      id: 18, area: 'edu', icon: '🏫',
+      nombre: 'Grado en Educación Primaria',
+      corto: 'Docencia para la etapa 6-12 años con mención en lengua extranjera u otras especialidades.',
+      descripcion: 'El Grado en Educación Primaria prepara a futuros maestros para ejercer en la etapa educativa de 6 a 12 años con una formación sólida en didáctica, gestión del aula y atención a la diversidad. El grado permite elegir entre diferentes menciones: Lengua Extranjera (inglés), Educación Física, Música y Educación Especial.\n\nEl enfoque práctico de Nebrija garantiza que los estudiantes pasen más del 30% del grado en centros educativos reales, bajo la tutela de maestros en activo. La metodología innovadora incluye aprendizaje cooperativo, aprendizaje basado en proyectos y uso de tecnología educativa.',
+      salidas: ['Maestro/a de Educación Primaria en colegios', 'Especialista en bilingüismo y enseñanza del inglés', 'Orientador/a escolar y pedagogo/a', 'Coordinador/a de proyectos educativos europeos', 'Diseñador/a curricular e investigador/a educativo/a'],
+      duracion: '4 años', modalidad: 'Presencial', creditos: '240 ECTS',
+    },
+    {
+      id: 19, area: 'edu', icon: '🌍',
+      nombre: 'Grado en Traducción e Interpretación',
+      corto: 'Traducción especializada e interpretación consecutiva y simultánea en varios idiomas.',
+      descripcion: 'El Grado en Traducción e Interpretación de Nebrija forma a especialistas en la mediación lingüística y cultural en entornos profesionales exigentes. Los estudiantes trabajan con al menos dos lenguas extranjeras además del español, desarrollando competencias en traducción jurídica, económica, literaria, científico-técnica y audiovisual.\n\nEl grado dispone de cabinas de interpretación profesionales para el entrenamiento en interpretación simultánea y consecutiva. El campus internacional de Nebrija permite a los estudiantes vivir en un entorno multicultural y realizar estancias de formación en universidades de todo el mundo.',
+      salidas: ['Traductor/a jurado/a y especializado/a', 'Intérprete de conferencias (simultánea/consecutiva)', 'Localizador/a de software, videojuegos y contenidos', 'Traductor/a audiovisual (subtitulación, doblaje)', 'Gestor/a de proyectos de traducción y terminología'],
+      duracion: '4 años', modalidad: 'Presencial', creditos: '240 ECTS',
+    },
+    {
+      id: 20, area: 'edu', icon: '🗣️',
+      nombre: 'Grado en Estudios Ingleses',
+      corto: 'Lengua, literatura y cultura anglosajona con especialización en lingüística o literatura.',
+      descripcion: 'El Grado en Estudios Ingleses ofrece una formación profunda en la lengua inglesa, su literatura, historia y cultura, así como en lingüística aplicada y enseñanza del inglés como lengua extranjera (TEFL). Los estudiantes alcanzan un dominio del inglés equivalente al nivel C2 del MCER.\n\nEl grado combina materias de literatura anglosajona, lingüística, análisis del discurso, traducción y cultura con talleres de comunicación oral y escrita en inglés. Las estancias en universidades de Reino Unido, Irlanda, Estados Unidos y Australia son una parte fundamental de la experiencia Nebrija.',
+      salidas: ['Profesor/a de inglés en academias y colegios', 'Redactor/a y editor/a de contenidos en inglés', 'Asesor/a cultural y de comunicación internacional', 'Investigador/a en lingüística y literatura inglesa', 'Intérprete y traductor/a de inglés'],
+      duracion: '4 años', modalidad: 'Presencial', creditos: '240 ECTS',
+    },
+
+    /* DERECHO Y CC. SOCIALES */
+    {
+      id: 21, area: 'der', icon: '📜',
+      nombre: 'Grado en Derecho',
+      corto: 'Formación jurídica completa en derecho privado, público, internacional y empresarial.',
+      descripcion: 'El Grado en Derecho de Nebrija forma juristas con un profundo conocimiento del ordenamiento jurídico español e internacional, capaces de asesorar, representar y defender los intereses de personas, empresas e instituciones. El plan de estudios abarca derecho civil, penal, mercantil, administrativo, laboral, tributario e internacional.\n\nLa metodología del caso y los talleres de práctica forense permiten a los estudiantes enfrentarse a situaciones reales de la profesión jurídica desde el primer año. La clínica jurídica de Nebrija atiende casos reales bajo la supervisión de abogados en ejercicio.',
+      salidas: ['Abogado/a en despacho o empresa', 'Magistrado/a y juez/a (vía oposición)', 'Asesor/a jurídico/a y compliance officer', 'Notario/a y registrador/a de la propiedad', 'Jurista en organismos internacionales y ONG'],
+      duracion: '4 años', modalidad: 'Presencial', creditos: '240 ECTS',
+    },
+    {
+      id: 22, area: 'der', icon: '🌐',
+      nombre: 'Grado en Relaciones Internacionales',
+      corto: 'Política internacional, diplomacia, derecho internacional y organizaciones globales.',
+      descripcion: 'El Grado en Relaciones Internacionales prepara a los estudiantes para comprender y participar en la dinámica política, económica y social del mundo contemporáneo. El plan de estudios integra teoría de las relaciones internacionales, economía política internacional, derecho internacional, historia diplomática y análisis geopolítico.\n\nNebrija mantiene una estrecha vinculación con instituciones internacionales como la ONU, la UE, la OTAN y distintas embajadas. Los estudiantes pueden realizar prácticas en organismos multilaterales, ministerios, think tanks y ONG de proyección internacional.',
+      salidas: ['Diplomático/a y funcionario/a de carrera', 'Analista geopolítico/a y de riesgo-país', 'Especialista en cooperación internacional y desarrollo', 'Consultor/a de organismos internacionales', 'Gestor/a de proyectos en ONG y fundaciones'],
+      duracion: '4 años', modalidad: 'Presencial', creditos: '240 ECTS',
+    },
+    {
+      id: 23, area: 'der', icon: '🔍',
+      nombre: 'Grado en Criminología',
+      corto: 'Análisis del delito, comportamiento criminal, seguridad y sistema penitenciario.',
+      descripcion: 'El Grado en Criminología de Nebrija forma a expertos en el estudio científico del delito, el delincuente, la víctima y las instituciones sociales de control. El plan de estudios integra derecho penal, psicología criminal, sociología de la desviación, victimología, criminalística y política criminal.\n\nLos estudiantes realizan prácticas en juzgados, prisiones, cuerpos y fuerzas de seguridad del Estado, gabinetes de psicología forense y servicios de atención a la víctima. La metodología incluye análisis de casos reales, laboratorios de criminalística y seminarios con profesionales de la criminología aplicada.',
+      salidas: ['Criminólogo/a en fuerzas y cuerpos de seguridad', 'Perito/a criminológico/a y forense', 'Técnico/a de reinserción social y servicios penitenciarios', 'Consultor/a en seguridad pública y privada', 'Investigador/a en criminología y política criminal'],
+      duracion: '4 años', modalidad: 'Presencial', creditos: '240 ECTS',
+    },
+    {
+      id: 24, area: 'der', icon: '🏛️',
+      nombre: 'Grado en Ciencias Políticas',
+      corto: 'Teoría política, sistemas de gobierno, políticas públicas y análisis electoral.',
+      descripcion: 'El Grado en Ciencias Políticas forma a analistas, gestores y asesores que comprenden el funcionamiento del poder político, las instituciones democráticas y los procesos de toma de decisiones públicas. El plan de estudios abarca teoría política, derecho constitucional, economía política, sociología, metodología de investigación y relaciones internacionales.\n\nNebrija cuenta con un Centro de Estudios Políticos que organiza seminarios, conferencias y debates con líderes políticos, periodistas, académicos y expertos en comunicación política. Los estudiantes acceden a bases de datos electorales y herramientas de análisis cuantitativo y cualitativo de última generación.',
+      salidas: ['Asesor/a político/a y de comunicación institucional', 'Analista de políticas públicas en administraciones', 'Consultor/a electoral y de opinión pública', 'Funcionario/a en organismos nacionales e internacionales', 'Investigador/a en ciencia política y sociología'],
+      duracion: '4 años', modalidad: 'Presencial', creditos: '240 ECTS',
+    },
+    {
+      id: 25, area: 'der', icon: '🤝',
+      nombre: 'Grado en Trabajo Social',
+      corto: 'Intervención social, bienestar, políticas sociales y atención a colectivos vulnerables.',
+      descripcion: 'El Grado en Trabajo Social forma profesionales comprometidos con la justicia social y la mejora del bienestar de individuos, familias y comunidades. Los estudiantes aprenden a diagnosticar situaciones de vulnerabilidad, diseñar intervenciones sociales y trabajar en equipos multidisciplinares en contextos muy diversos.\n\nLas prácticas, que suman más de 900 horas, se realizan en servicios sociales municipales, hospitales, centros de acogida, organismos judiciales y ONG. El plan de estudios integra políticas sociales, psicología social, trabajo social con grupos y comunidades, intervención familiar e investigación social.',
+      salidas: ['Trabajador/a social en servicios sociales públicos', 'Educador/a social en centros de menores y familia', 'Técnico/a en ONG y entidades del tercer sector', 'Mediador/a y orientador/a familiar', 'Gestor/a de programas de inclusión y diversidad'],
+      duracion: '4 años', modalidad: 'Presencial', creditos: '240 ECTS',
+    },
+  ];
+
+  /* ── RENDER ─────────────────────────────────────────── */
+  let activeArea = 'all';
+
+  function renderGrid(area) {
+    const grid = document.getElementById('grid');
+    const label = document.getElementById('countLabel');
+    const filtered = area === 'all' ? GRADOS : GRADOS.filter(g => g.area === area);
+    label.textContent = filtered.length + ' grado' + (filtered.length !== 1 ? 's' : '');
+
+    if (filtered.length === 0) {
+      grid.innerHTML = '<div class="empty"><span>🔍</span>No hay grados en esta área.</div>';
+      return;
+    }
+
+    grid.innerHTML = filtered.map(g => {
+      const a = AREAS[g.area];
+      return `
+        <div class="card" onclick="openPanel(${g.id})">
+          <div class="card-top" style="background:${a.color}"></div>
+          <div class="card-body">
+            <span class="card-area" style="background:${a.bg};color:${a.color}">
+              <span class="card-area-dot" style="background:${a.color}"></span>${a.label}
+            </span>
+            <div class="card-icon" style="background:${a.bg};font-size:22px">${g.icon}</div>
+            <h3>${g.nombre}</h3>
+            <p>${g.corto}</p>
+            <div class="card-meta">
+              <span class="card-duration">⏱ ${g.duracion} · ${g.creditos}</span>
+              <div class="card-arrow" style="background:${a.bg};color:${a.color}">›</div>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  /* ── FILTROS ─────────────────────────────────────────── */
+  document.getElementById('filters').addEventListener('click', e => {
+    const btn = e.target.closest('.filter-btn');
+    if (!btn) return;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeArea = btn.dataset.area;
+    renderGrid(activeArea);
+  });
+
+  /* ── PANEL ───────────────────────────────────────────── */
+  function openPanel(id) {
+    const g = GRADOS.find(x => x.id === id);
+    const a = AREAS[g.area];
+
+    document.getElementById('panelStripe').style.background = a.color;
+
+    const lines = g.descripcion.split('\n\n').map(p => `<p class="panel-desc">${p}</p>`).join('');
+
+    document.getElementById('panelBody').innerHTML = `
+      <span class="panel-area-badge" style="background:${a.bg};color:${a.color}">
+        ${a.icon} ${a.label}
+      </span>
+      <div class="panel-icon-big" style="background:${a.bg}">${g.icon}</div>
+      <div class="panel-title">${g.nombre}</div>
+      <div class="panel-faculty">${a.faculty}</div>
+      <div class="info-pills">
+        <div class="pill"><span class="pill-icon">⏱</span> ${g.duracion}</div>
+        <div class="pill"><span class="pill-icon">📋</span> ${g.creditos}</div>
+        <div class="pill"><span class="pill-icon">🏛️</span> ${g.modalidad}</div>
+      </div>
+      <div class="section-label">Sobre el grado</div>
+      ${lines}
+      <div class="section-label">Salidas profesionales</div>
+      <ul class="salidas-list">
+        ${g.salidas.map(s => `<li>${s}</li>`).join('')}
+      </ul>
+      <div class="panel-actions">
+        <button class="btn-primary">Solicitar información</button>
+        <button class="btn-outline">Descargar Guía del Grado</button>
+      </div>`;
+
+    document.getElementById('panel').classList.add('open');
+    document.getElementById('overlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closePanel() {
+    document.getElementById('panel').classList.remove('open');
+    document.getElementById('overlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  document.getElementById('btnClose').addEventListener('click', closePanel);
+  document.getElementById('overlay').addEventListener('click', closePanel);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closePanel(); });
+
+  /* ── INIT ────────────────────────────────────────────── */
+  renderGrid('all');
+</script>
 </body>
 </html>
