@@ -1,0 +1,7 @@
+# Permitir específicamente al bot de Atlassian Rovo rastrear todo el sitio
+User-agent: atlassian-bot
+Allow: /
+
+# Opcional: Permitir también a cualquier otro buscador (como Google) entrar al sitio
+User-agent: *
+Allow: /
