@@ -11,8 +11,11 @@
 
     :root {
       --navy:    #1a1f5e;
-      --header:       #0E2B6E;   /* Verde header (nueva identidad visual) */
-      --header-hover: #1B5E20;   /* Verde más oscuro para estados hover/activo */
+      /* Token reutilizable para el fondo del header (nueva identidad visual) */
+      --header-bg-color: #28A745;   /* Verde marca */
+      --header:          var(--header-bg-color);   /* Alias para compatibilidad */
+      --header-hover:    #1B5E20;   /* Verde más oscuro para estados hover/activo */
+      --header-text:     #FFFFFF;   /* Texto/iconos del header (contraste AA sobre el verde) */
       --red:     #c0392b;
       --red-hover: #a93226;
       --bg:      #f4f6f9;
@@ -38,7 +41,7 @@
     /* ── NAV ─────────────────────────────────────────── */
     nav {
       position: sticky; top: 0; z-index: 100;
-      background: var(--header);
+      background: var(--header-bg-color);
       display: flex; align-items: center; justify-content: space-between;
       padding: 0 6vw; height: 66px;
       box-shadow: 0 2px 16px rgba(0,0,0,.30);
@@ -49,15 +52,15 @@
       border-radius: 8px; display: flex; align-items: center; justify-content: center;
       font-weight: 800; font-size: 18px; color: var(--header); letter-spacing: -1px;
     }
-    .nav-logo-text { font-weight: 700; font-size: 1.1rem; color: #fff; letter-spacing: .5px; }
+    .nav-logo-text { font-weight: 700; font-size: 1.1rem; color: var(--header-text); letter-spacing: .5px; }
     .nav-links { display: flex; gap: 28px; list-style: none; }
     .nav-links a {
-      text-decoration: none; color: rgba(255,255,255,.92);
-      font-size: .88rem; font-weight: 500; transition: color .2s, opacity .2s;
+      text-decoration: none; color: var(--header-text);
+      font-size: .88rem; font-weight: 600; transition: color .2s, opacity .2s;
     }
     .nav-links a:hover,
     .nav-links a:focus,
-    .nav-links a:active { color: #fff; text-decoration: underline; text-underline-offset: 4px; }
+    .nav-links a:active { color: var(--header-text); text-decoration: underline; text-underline-offset: 4px; }
     .btn-nav {
       background: #ffffff; color: var(--header); border: none; padding: 9px 20px;
       border-radius: 7px; font-size: .85rem; font-weight: 600; cursor: pointer;
