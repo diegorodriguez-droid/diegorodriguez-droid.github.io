@@ -27,12 +27,14 @@
 
     :root {
       --navy:    #1a1f5e;
-      /* Token reutilizable para el fondo del header y hero (color corporativo principal) */
-      --header-bg-color: #0D1382;   /* Color corporativo principal oficial */
-      --header:          var(--header-bg-color);   /* Alias para compatibilidad */
-      --header-hover:    #0747A6;   /* Azul de apoyo oficial para estados hover/activo */
-      --header-text:     #FFFFFF;   /* Texto/iconos del header (blanco, reforzado con sombra para AA) */
-      /* Sombra sutil para garantizar legibilidad/contraste AA del texto blanco sobre el azul corporativo */
+      /* Token reutilizable para el fondo del hero/banner (color corporativo principal, no afectado por el header) */
+      --hero-bg-color: #0D1382;   /* Color corporativo principal oficial, usado únicamente en el hero */
+
+      /* Tokens reutilizables del header (MOBL-63): verde corporativo */
+      --color-header-bg:    #2E7D32;   /* Verde corporativo oficial del header */
+      --color-header-hover: #1B5E20;   /* Verde más oscuro para estados hover/focus/active, mantiene contraste AA */
+      --color-header-text:  #FFFFFF;   /* Texto/iconos del header (blanco, contraste AA >= 4.5:1 sobre el verde) */
+      /* Sombra sutil para reforzar la legibilidad/contraste AA del texto blanco sobre el verde corporativo */
       --header-text-shadow: 0 1px 2px rgba(0,0,0,.35);
       --red:     #c0392b;
       --red-hover: #a93226;
@@ -59,7 +61,7 @@
     /* ── NAV ─────────────────────────────────────────── */
     nav {
       position: sticky; top: 0; z-index: 100;
-      background-color: var(--header-bg-color);
+      background-color: var(--color-header-bg);
       display: flex; align-items: center; justify-content: space-between;
       padding: 0 6vw; height: 66px;
       box-shadow: 0 2px 16px rgba(0,0,0,.30);
@@ -68,25 +70,25 @@
     .nav-logo-icon {
       width: 36px; height: 36px; background: #ffffff;
       border-radius: 8px; display: flex; align-items: center; justify-content: center;
-      font-weight: 800; font-size: 18px; color: var(--header); letter-spacing: -1px;
+      font-weight: 800; font-size: 18px; color: var(--color-header-bg); letter-spacing: -1px;
     }
-    .nav-logo-text { font-weight: 700; font-size: 1.1rem; color: var(--header-text); letter-spacing: .5px; text-shadow: var(--header-text-shadow); }
+    .nav-logo-text { font-weight: 700; font-size: 1.1rem; color: var(--color-header-text); letter-spacing: .5px; text-shadow: var(--header-text-shadow); }
     .nav-links { display: flex; gap: 28px; list-style: none; }
     .nav-links a {
-      text-decoration: none; color: var(--header-text);
+      text-decoration: none; color: var(--color-header-text);
       font-size: .88rem; font-weight: 600; transition: color .2s, opacity .2s;
       text-shadow: var(--header-text-shadow);
     }
     .nav-links a:hover,
     .nav-links a:focus,
-    .nav-links a:active { color: var(--header-text); text-decoration: underline; text-underline-offset: 4px; }
+    .nav-links a:active { color: var(--color-header-text); text-decoration: underline; text-underline-offset: 4px; }
     .btn-nav {
-      background: #ffffff; color: var(--header); border: none; padding: 9px 20px;
+      background: #ffffff; color: var(--color-header-bg); border: none; padding: 9px 20px;
       border-radius: 7px; font-size: .85rem; font-weight: 600; cursor: pointer;
       transition: background .2s, color .2s, transform .15s;
     }
     .btn-nav:hover,
-    .btn-nav:focus { background: var(--header-hover); color: #ffffff; transform: translateY(-1px); }
+    .btn-nav:focus { background: var(--color-header-hover); color: #ffffff; transform: translateY(-1px); }
     @media(max-width:768px) {
       .nav-links { display: none; }
       nav { padding: 0 5vw; }
@@ -94,7 +96,7 @@
 
     /* ── HERO ─────────────────────────────────────────── */
     .hero {
-      background-color: var(--header-bg-color);
+      background-color: var(--hero-bg-color);
       padding: 80px 6vw 70px;
       position: relative; overflow: hidden;
     }
